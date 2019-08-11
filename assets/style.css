@@ -1,0 +1,353 @@
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+.dvf-wrapper {
+    color: #868686;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: lighter;
+    max-width: 1133px;
+    margin: auto;
+}
+
+.dvf-wrapper a {
+    text-decoration: none !important;
+}
+
+.dvf-wrapper a:focus {
+    border: none;
+    outline: none;
+}
+
+.dvf-head {
+    display: -webkit-flex;
+    display: flex;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dvf-footer {
+    display: -webkit-flex;
+    display: flex;
+    border-top: 1px solid #f0f0f0;
+}
+
+.dvf-pages {
+    -webkit-flex: 3 1 100px;
+    -ms-flex: 3 1 100px;
+    flex: 3 1 100px;
+    display: inline-flex;
+    padding: 0;
+    margin-left: -10px;
+}
+
+.dvf-pages li:first-child span {
+    margin: 10px;
+    display: block;
+}
+
+.dvf-head .dvf-pagination {
+    -webkit-flex: 3 1 100px;
+    -ms-flex: 3 1 100px;
+    flex: 3 1 100px;
+    display: inline-flex;
+}
+
+.dvf-footer .dvf-pagination {
+    display: inline-flex;
+    float: right;
+}
+
+.dvf-pagination li:first-child a {
+    margin: 10px 20px;
+}
+
+.dvf-pagination li:last-child a {
+    margin: 10px 20px;
+}
+
+.dvf-wrapper li {
+    list-style: none;
+}
+
+.dvf-wrapper li a {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.dvf-wrapper li a {
+    text-decoration: none;
+    margin: 10px;
+}
+
+.dvf-wrapper li a.active {
+    font-family: 'Open Sans', sans-serif;
+    color: #313131;
+    font-weight: bolder;
+}
+
+.dvf-filter-button {
+    -webkit-flex: 3 1 100px;
+    -ms-flex: 3 1 100px;
+    flex: 3 1 100px;
+    text-align: right;
+}
+
+.dvf-filter-button a {
+    line-height: 40px;
+    display: inline-block;
+}
+
+.dvf-wrapper a {
+    color: #868686;
+    text-decoration: none;
+}
+
+.dvf-filter-section {
+    display: none;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 30px;
+    margin-right: -60px;
+}
+
+.dvf-filter-section.active {
+    visibility: visible;
+    opacity: 1;
+    height: 300px;
+}
+
+.dvf-items {
+    margin: 30px -30px 30px 0;
+}
+
+.dvf-item {
+    width: 260px;
+    display: block;
+    min-height: 300px;
+    margin-right: 30px;
+    float: left;
+}
+
+.dvf-item-description {
+
+}
+
+.dvf-item-description .dvf-item-title {
+    font-family: 'Open Sans', sans-serif;
+    color: #242a32;
+    font-weight: bold;
+    font-size: 18px;
+    display: block;
+    padding: 12px 0;
+}
+
+.dvf-item-description .dvf-item-phone {
+    padding: 12px 0;
+}
+
+.dvf-items::after {
+    content: " ";
+    display: block;
+    height: 0;
+    clear: both;
+}
+
+.dvf-thumb img {
+    width: 260px;
+}
+
+.dvf-thumb:hover .dvf-show-more {
+    visibility: visible;
+    opacity: 0.95;
+}
+
+.dvf-show-more {
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.3s linear;
+    background-color: #242a32;
+    width: 260px;
+    height: 160px;
+    position: absolute;
+    text-align: center;
+    line-height: 160px;
+    color: #e2e2e2 !important;
+}
+
+.dvf-dropdown {
+    display: block;
+    float: left;
+    margin: 30px 30px 0 0;
+    width: 206px;
+}
+
+.dvf-dropdown-title {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 14px;
+    font-weight: lighter;
+    color: #868686;
+    margin-bottom: 13px;
+}
+
+.dvf-dropdown-preview {
+    font-family: 'Open Sans', sans-serif;
+    color: #313131;
+    font-weight: bolder;
+    cursor: pointer;
+}
+
+.dvf-dropdown-list {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    border: 1px solid #e8e8e8;
+    z-index: 1;
+    margin-top: 5px;
+    min-width: 150px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.dvf-dropdown-list label {
+    display: block;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dvf-dropdown-list label:first-of-type {
+    color: #313131;
+}
+
+.dvf-dropdown-list input {
+    display: none;
+}
+
+.dvf-dropdown-list input:checked + label {
+    background-color: #f2f2f2;
+}
+
+.dvf-dropdown-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dvf-dropdown-list::-webkit-scrollbar-track {
+    background-color: #ffffff;
+}
+
+.dvf-dropdown-list::-webkit-scrollbar-thumb {
+    background-color: #c9c9c9;
+}
+
+.clear {
+    clear: both;
+}
+
+.arrow {
+    border: solid #868686;
+    border-width: 0 1px 1px 0;
+    display: inline-block;
+    padding: 3px;
+    margin: 3px 13px;
+    -webkit-transition: -webkit-transform .4s ease-in-out;
+    -ms-transition: -ms-transform .4s ease-in-out;
+    transition: transform .4s ease-in-out;
+}
+
+.up {
+    transform: rotate(-135deg);
+    -webkit-transform: rotate(-135deg);
+}
+
+.down {
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+}
+
+@media (max-width: 1200px) {
+    @media (min-width: 376px) {
+        .dvf-items {
+            margin: 10px -1% 0 0;
+        }
+
+        .dvf-item {
+            margin-right: 1%;
+            width: 24%;
+        }
+    }
+
+    .dvf-thumb img {
+        width: 100%;
+    }
+}
+
+@media (max-width: 940px) {
+    @media (min-width: 480px) {
+        .dvf-item {
+            width: 32.3%;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .dvf-items {
+        margin: 10px 0 0 0;
+    }
+
+    .dvf-items .dvf-item:last-of-type {
+        border: none;
+    }
+
+    @media (min-width: 376px) {
+        .dvf-item {
+            width: 49%;
+        }
+    }
+
+    .dvf-item {
+        min-height: auto;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #e8e8e8;
+    }
+
+    .dvf-show-more {
+        display: none;
+    }
+
+    .dvf-footer .dvf-pages {
+        display: none;
+    }
+
+    .dvf-head .dvf-pagination {
+        display: none;
+    }
+
+    .dvf-pagination {
+        padding: 0;
+        margin-left: -10px;
+        float: left;
+    }
+
+    .dvf-filter-button {
+        float: right;
+        display: block;
+        width: 20%;
+    }
+
+    .dvf-dropdown {
+        width: 100%;
+    }
+
+    .dvf-dropdown-list {
+        width: 80%;
+    }
+
+    .dvf-filter-section {
+        margin: auto;
+    }
+}
+
+@media (max-width: 375px) {
+    .dvf-item {
+        width: 100%;
+    }
+}
