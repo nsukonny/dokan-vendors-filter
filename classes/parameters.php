@@ -6,6 +6,7 @@
 
 class DokanVendorsFilterParemeters {
 
+	const SLUG = 'dokan_vf_';
 	const FIELD_CITY = 'city';
 	const FIELD_COUNTRY = 'country';
 

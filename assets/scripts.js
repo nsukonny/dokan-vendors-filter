@@ -61,6 +61,19 @@ jQuery(document).ready(function () {
             });
         }
     });
+
+    $('body').on('change', '.dvf-filter-section input[type="checkbox"]', function () {
+        let data = {
+            action: 'dokan_vendors_ajax_list',
+            data: $( '#dokan-vendors-filters-form' ).serialize()
+        };
+
+        $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
+            if (resp.success) {
+                $('.dvf-items').html(resp.data);
+            }
+        });
+    });
 });
 
 function collectPreview(dropdownList) {

@@ -41,7 +41,7 @@ class DokanVendorsFilterAdmin {
 
 		foreach ( DokanVendorsFilterParemeters::$fields as $key => $field ) {
 			if ( isset( $store_settings['address'][ $key ] ) ) {
-				update_user_meta( $user_id, 'dokan_vf_' . $key, $store_settings['address'][ $key ] );
+				update_user_meta( $user_id, DokanVendorsFilterParemeters::SLUG . $key, $store_settings['address'][ $key ] );
 			}
 		}
 	}
