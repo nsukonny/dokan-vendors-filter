@@ -1,4 +1,7 @@
 *** Changelog ***
 
+= 1.0.1 =
+* Add parse/remove data to user_meta from Dokan stores
+
 = 1.0.0 =
 * Beta release

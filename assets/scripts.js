@@ -1,9 +1,9 @@
 jQuery(document).ready(function () {
-    let toggleSpeed = 350,
+    var toggleSpeed = 350,
         $ = jQuery;
 
     $('body').on('click', '.dvf-filter-button a', function () {
-        let filterSection = $('.dvf-filter-section');
+        var filterSection = $('.dvf-filter-section');
 
         filterSection.toggle(toggleSpeed);
 
@@ -13,11 +13,11 @@ jQuery(document).ready(function () {
     $('body').on('click', '.dvf-dropdown-preview', function (e) {
         e.stopPropagation();
 
-        let list = $(this).next(),
+        var list = $(this).next(),
             needOpen = !list.is(':visible');
 
         $('.dvf-dropdown-list').each(function () {
-            let childThat = $(this);
+            var childThat = $(this);
             if (childThat.is(':visible')) {
                 childThat.toggle(toggleSpeed);
                 childThat.parent().find('.arrow').removeClass('up').addClass('down');
@@ -31,7 +31,7 @@ jQuery(document).ready(function () {
     });
 
     $('body').on('change', '.dvf-filter-section input', function (e) {
-        let that = $(this);
+        var that = $(this);
 
         if (that.val() == 'all') {
             that.parent().find('input').each(function () {
@@ -51,7 +51,7 @@ jQuery(document).ready(function () {
     });
 
     $('body').click(function (e) {
-        let stopPropagination = ['LABEL', 'INPUT'];
+        var stopPropagination = ['LABEL', 'INPUT'];
 
         if (!stopPropagination.includes(e.target.tagName)) {
             $('.dvf-dropdown-list').each(function () {
@@ -63,14 +63,14 @@ jQuery(document).ready(function () {
     });
 
     $('body').on('change', '.dvf-filter-section input[type="checkbox"]', function () {
-        let data = {
+        var data = {
             action: 'dokan_vendors_ajax_list',
             data: $('#dokan-vendors-filters-form').serialize() +
                 '&limit=' + $('input[name="dokan_vendors_limit"]').val() +
                 '&page=' + $('input[name="dokan_vendors_page"]').val(),
         };
 
-        let items = $('.dvf-items');
+        var items = $('.dvf-items');
         if ($('.dokan-vendors-filter-preloader').length === 0) {
             items.prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
             $('.dvf-pagination').prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
@@ -97,12 +97,12 @@ jQuery(document).ready(function () {
 });
 
 function collectPreview(dropdownList) {
-    let title = '',
+    var title = '',
         i = 0,
         previewMaxLenght = parseInt(dropdownList.parent().width() / 9);
 
     dropdownList.find('input').each(function () {
-        let that = jQuery(this);
+        var that = jQuery(this);
 
         if (that.is(':checked')) {
             if (i > 0) {

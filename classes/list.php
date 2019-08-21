@@ -164,7 +164,9 @@ class DVF_List {
 				$html .= '	    </div>
 	                    </div>';
 			}
+
 		}
+
 		$html .= '		</form>
 						<div class="clear" ></div >
 					</section>';
@@ -180,22 +182,22 @@ class DVF_List {
 	 * @return string
 	 */
 	private function get_footer( $html ) {
-		$html .= '	<section class="dvf-footer" >
+		$html .= '	<section class="dvf-footer" >';
 
-				        <ul class="dvf-pages" >
-				            <li ><span > Show</span ></li >
-				            <li ><a href = "" class="active" ><span > 30</span ></a ></li >
-				            <li ><a href = "" ><span > 60</span ></a ></li >
-				            <li ><a href = "" ><span > 120</span ></a ></li >
-				        </ul >
-				
-				        <ul class="dvf-pagination" >';
+		$html .= '		<ul class="dvf-pages" >';
+		$html .= '			<li ><span > Show</span ></li >';
+		$html .= '			<li ><a href = "" class="active" ><span > 30</span ></a ></li >';
+		$html .= '			<li ><a href = "" ><span > 60</span ></a ></li >';
+		$html .= '			<li ><a href = "" ><span > 120</span ></a ></li >';
+		$html .= '		</ul >';
+
+		$html .= '		<ul class="dvf-pagination" >';
 
 		$html .= $this->prepare_paginations();
 
-		$html .= '		</ul >
-				
-				    </section > ';
+		$html .= '		</ul >';
+
+		$html .= '	</section > ';
 
 		return $html;
 	}
