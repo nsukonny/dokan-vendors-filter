@@ -1,10 +1,12 @@
 <?php
-
 /**
- * Class for display list from Dokan Vendors Filter
+ * Class DVF_List
+ * display list from Dokan Vendors Filter
+ *
+ * @since 1.0.0
  */
 
-class DokanVendorsFilterList {
+class DVF_List {
 
 	/**
 	 * DokanVendorsFilterList constructor.
@@ -15,6 +17,7 @@ class DokanVendorsFilterList {
 		add_action( 'wp_ajax_dokan_vendors_ajax_list', array( $this, 'dokan_vendors_ajax_list' ), 99 );
 		add_action( 'wp_ajax_nopriv_dokan_vendors_ajax_list', array( $this, 'dokan_vendors_ajax_list' ), 99 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_scripts' ) );
+
 		add_shortcode( 'dvf-list', array( $this, 'show_list' ) );
 	}
 
@@ -43,18 +46,25 @@ class DokanVendorsFilterList {
 			'dokan-vendors-script',
 			'DokanVendorsFilter',
 			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+				'pluginUrl' => DOKAN_VF_PLUGIN_URL
 			)
 		);
 	}
 
+	/**
+	 * Display list
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param $attrs
+	 *
+	 * @return string
+	 */
 	public function show_list( $attrs ) {
-		$html = '<div class="dvf-wrapper">';
-
-		$html .= $this->get_header();
-
-		$html .= $this->get_filters();
-
+		$html    = '<div class="dvf-wrapper">';
+		$html    = $this->get_header( $html );
+		$html    = $this->get_filters( $html );
 		$vendors = $this->get_vendors();
 
 		if ( count( $vendors ) ) {
@@ -67,8 +77,7 @@ class DokanVendorsFilterList {
 			$html .= '	</section>';
 		}
 
-		$html .= $this->get_footer();
-
+		$html = $this->get_footer( $html );
 		$html .= '</div > ';
 
 		return $html;
@@ -81,9 +90,10 @@ class DokanVendorsFilterList {
 	 *
 	 * @return string
 	 */
-	private function get_header() {
-		$html = '	<section class="dvf-head" >
-
+	private function get_header( $html ) {
+		$html .= '	<section class="dvf-head" >
+						
+						<input type="hidden" name="dokan_vendors_limit" value="30" >
 				        <ul class="dvf-pages" >
 				            <li ><span > Show</span ></li >
 				            <li ><a href = "" class="active" ><span > 30</span ></a ></li >
@@ -91,15 +101,13 @@ class DokanVendorsFilterList {
 				            <li ><a href = "" ><span > 120</span ></a ></li >
 				        </ul >
 				
-				        <ul class="dvf-pagination" >
-				            <li ><a href = "" ><span ><</span ></a ></li >
-				            <li ><a href = "" ><span > 1</span ></a ></li >
-				            <li ><a href = "" class="active" ><span > 2</span ></a ></li >
-				            <li ><a href = "" ><span > 3</span ></a ></li >
-				            <li ><a href = "" ><span > 4</span ></a ></li >
-				            <li ><a href = "" ><span > 5</span ></a ></li >
-				            <li ><a href = "" ><span >></span ></a ></li >
-				        </ul >
+				        <ul class="dvf-pagination" >';
+
+		$html .= $this->prepare_paginations();
+
+		$html .= '		</ul >
+		
+						<input type="hidden" name="dokan_vendors_page" value="1" >
 				
 				        <div class="dvf-filter-button" >
 				            <a href = "#" > Filter</a >
@@ -117,13 +125,18 @@ class DokanVendorsFilterList {
 	 *
 	 * @return string
 	 */
-	private function get_filters() {
+	private function get_filters( $html ) {
 
-		$html = '	<section class="dvf-filter-section" >
+		$html .= '	<section class="dvf-filter-section" >
 						<form id="dokan-vendors-filters-form">';
 
-		foreach ( DokanVendorsFilterParemeters::$fields as $key => $field ) {
-			$meta_values = $this->get_meta_values( DokanVendorsFilterParemeters::SLUG . $key );
+		$filters = DVF_Params::get_parameter( 'filters' );
+		foreach ( DVF_Params::$fields as $key => $field ) {
+			if ( ! isset( $filters[ $key ] ) || $filters[ $key ] != DVF_Params::ACTIVE ) {
+				continue;
+			}
+
+			$meta_values = $this->get_meta_values( DVF_Params::SLUG . $key );
 
 			if ( count( $meta_values ) ) {
 				$html .= '	<div class="dvf-dropdown" >
@@ -134,7 +147,7 @@ class DokanVendorsFilterList {
 
 				if ( count( $meta_values ) > 1 ) {
 					$html .= '  <input type="checkbox" value="all" 
-									name="' . DokanVendorsFilterParemeters::SLUG . $key . '[0]" 
+									name="' . DVF_Params::SLUG . $key . '[0]" 
 									id="' . $key . '_all" >
 								<label for="' . $key . '_all" >All ' . $field . ' </label >';
 				}
@@ -142,7 +155,7 @@ class DokanVendorsFilterList {
 				$i = 1;
 				foreach ( $meta_values as $meta_value ) {
 					$html .= '  <input type="checkbox" value="' . $meta_value['value'] . '" 
-									name="' . DokanVendorsFilterParemeters::SLUG . $key . '[' . $i . ']" 
+									name="' . DVF_Params::SLUG . $key . '[' . $i . ']" 
 									id="' . $key . '_' . $i . '" >
 								<label for="' . $key . '_' . $i . '" >' . $meta_value['title'] . '</label >';
 					$i ++;
@@ -166,8 +179,8 @@ class DokanVendorsFilterList {
 	 *
 	 * @return string
 	 */
-	private function get_footer() {
-		$html = '	<section class="dvf-footer" >
+	private function get_footer( $html ) {
+		$html .= '	<section class="dvf-footer" >
 
 				        <ul class="dvf-pages" >
 				            <li ><span > Show</span ></li >
@@ -176,15 +189,11 @@ class DokanVendorsFilterList {
 				            <li ><a href = "" ><span > 120</span ></a ></li >
 				        </ul >
 				
-				        <ul class="dvf-pagination" >
-				            <li ><a href = "" ><span ><</span ></a ></li >
-				            <li ><a href = "" ><span > 1</span ></a ></li >
-				            <li ><a href = "" class="active" ><span > 2</span ></a ></li >
-				            <li ><a href = "" ><span > 3</span ></a ></li >
-				            <li ><a href = "" ><span > 4</span ></a ></li >
-				            <li ><a href = "" ><span > 5</span ></a ></li >
-				            <li ><a href = "" ><span >></span ></a ></li >
-				        </ul >
+				        <ul class="dvf-pagination" >';
+
+		$html .= $this->prepare_paginations();
+
+		$html .= '		</ul >
 				
 				    </section > ';
 
@@ -196,27 +205,36 @@ class DokanVendorsFilterList {
 	 *
 	 * @since 1.0.0
 	 *
+	 * @param array $postdata
+	 *
 	 * @return mixed|array
 	 */
-	private function get_vendors() {
-		$args['meta_query'] = array(
-			'relation' => 'OR',
-			array(
-				'key'     => DokanVendorsFilterParemeters::SLUG . 'city',
-				'value'   => array( 'Moskow', 'Rovenki' ),
-				'compare' => 'IN',
-			),
-			array(
-				'key'     => DokanVendorsFilterParemeters::SLUG . 'country',
-				'value'   => array( 'RU', 'UA' ),
-				'compare' => 'IN',
-			),
-		);
+	private function get_vendors( $postdata = array() ) {
+		$args = array();
+
+		if ( count( $postdata ) ) {
+			$args               = array( 'meta_query' );
+			$args['meta_query'] = [];
+			if ( count( $postdata ) > 1 ) {
+				$args['meta_query']['relation'] = 'AND';
+			}
+
+			foreach ( $postdata as $key => $value ) {
+				if ( $value[0] != 'all' && $key != 'limit' && $key != 'page' ) {
+					$args['meta_query'][] = array(
+						'key'     => $key,
+						'value'   => $value,
+						'compare' => 'IN',
+					);
+				}
+			}
+		}
 
 		$results = [];
 		$vendors = dokan_get_sellers( $args );
 
-		foreach ( $vendors['users'] as $vendor ) {
+		foreach ( $vendors['users'] as $seller ) {
+			$vendor      = dokan()->vendor->get( $seller->ID );
 			$store_info  = dokan_get_store_info( $vendor->data->ID );
 			$description = get_user_meta( $vendor->data->ID, 'description', true );
 
@@ -224,12 +242,19 @@ class DokanVendorsFilterList {
 				$description = substr( $description, 0, 65 ) . '...';
 			}
 
+			$store_banner_id  = $vendor->get_banner_id();
+			$store_banner_url = $store_banner_id ?
+				wp_get_attachment_image_src( $store_banner_id, 'kas_vendor_image' ) :
+				DOKAN_PLUGIN_ASSEST . '/images/default-store-banner.png';
+
 			$results[] = array(
 				'store_id'    => $vendor->data->ID,
 				'store_url'   => dokan_get_store_url( $vendor->data->ID ),
 				'store_name'  => $store_info['store_name'],
 				'description' => $description,
 				'phone'       => $store_info['phone'],
+				'banner'      => ( is_array( $store_banner_url ) ?
+					esc_attr( $store_banner_url[0] ) : esc_attr( $store_banner_url ) ),
 			);
 		}
 
@@ -248,8 +273,8 @@ class DokanVendorsFilterList {
 	private function get_vendor_item( $vendor ) {
 		$html = '	<div class="dvf-item" >
 			            <a href="' . $vendor['store_url'] . '" class="dvf-thumb" >
-			            <span class="dvf-show-more" > More details </span >
-			            <img src = "' . DOKAN_VF_PLUGIN_URL . 'assets/img/example1.png" title = "" alt = "" >
+			            	<span class="dvf-show-more" > More details </span >
+			            	<img src="' . $vendor['banner'] . '" />
 			            </a >
 			            <div class="dvf-item-description" >
 			                <a href="' . $vendor['store_url'] . '" class="dvf-item-title" > 
@@ -283,7 +308,7 @@ class DokanVendorsFilterList {
 			$wpdb->prepare( "SELECT um.meta_value FROM {$wpdb->usermeta} um WHERE um.meta_key = %s", $key )
 		);
 
-		return $this->prepare_meta_titles( $results, $key );
+		return $this->prepare_meta_titles( array_unique( $results ), $key );
 	}
 
 	/**
@@ -300,7 +325,7 @@ class DokanVendorsFilterList {
 		$results = [];
 		$titles  = [];
 
-		if ( $key == DokanVendorsFilterParemeters::SLUG . DokanVendorsFilterParemeters::FIELD_COUNTRY ) {
+		if ( $key == DVF_Params::SLUG . DVF_Params::FIELD_COUNTRY ) {
 			$titles = WC()->countries->get_allowed_countries();
 		}
 
@@ -314,6 +339,40 @@ class DokanVendorsFilterList {
 		return $results;
 	}
 
+	private function prepare_paginations( $postdata = array() ) {
+		$args = array();
+
+		if ( count( $postdata ) ) {
+			$args               = array( 'meta_query' );
+			$args['meta_query'] = [];
+			if ( count( $postdata ) > 1 ) {
+				$args['meta_query']['relation'] = 'AND';
+			}
+
+			foreach ( $postdata as $key => $value ) {
+				if ( $value[0] != 'all' ) {
+					$args['meta_query'][] = array(
+						'key'     => $key,
+						'value'   => $value,
+						'compare' => 'IN',
+					);
+				}
+			}
+		}
+
+		$vendors = dokan_get_sellers( $args );
+
+		$html = '			<li ><a href="#" data-page="1" ><span ><</span ></a ></li >
+				            <li ><a href="#" data-page="1"  ><span > 1</span ></a ></li >
+				            <li ><a href="#" data-page="2"  class="active" ><span > 2</span ></a ></li >
+				            <li ><a href="#" data-page="3"  ><span > 3</span ></a ></li >
+				            <li ><a href="#" data-page="4"  ><span > 4</span ></a ></li >
+				            <li ><a href="#" data-page="5"  ><span > 5</span ></a ></li >
+				            <li ><a href="#" data-page="3"  ><span >></span ></a ></li >';
+
+		return $html;
+	}
+
 	/**
 	 * Return vendors list by filtering and pagination
 	 *
@@ -324,18 +383,25 @@ class DokanVendorsFilterList {
 
 		parse_str( $_POST['data'], $postdata );
 
-		$vendors = $this->get_vendors();
+		$vendors = $this->get_vendors( $postdata );
 
-		if ( count( $vendors ) ) {
-			$html = '';
+		$items = '';
 
-			foreach ( $vendors as $vendor ) {
-				$html .= $this->get_vendor_item( $vendor );
-			}
-
-			wp_send_json_success( $html );
+		if ( count( $vendors ) == 0 ) {
+			$items = 'No results';
 		}
-		
+
+		foreach ( $vendors as $vendor ) {
+			$items .= $this->get_vendor_item( $vendor );
+		}
+
+		$answer = array(
+			'items'       => $items,
+			'paginations' => $this->prepare_paginations( $postdata )
+		);
+
+		wp_send_json_success( $answer );
+
 		wp_die();
 	}
 }
@@ -345,10 +411,10 @@ class DokanVendorsFilterList {
  *
  * @since 1.0.0
  *
- * @return DokanVendorsFilterList
+ * @return DVF_List
  */
 function dokan_vendors_filter_list_runner() {
-	return new DokanVendorsFilterList();
+	return new DVF_List();
 }
 
 dokan_vendors_filter_list_runner();

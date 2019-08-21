@@ -65,14 +65,34 @@ jQuery(document).ready(function () {
     $('body').on('change', '.dvf-filter-section input[type="checkbox"]', function () {
         let data = {
             action: 'dokan_vendors_ajax_list',
-            data: $( '#dokan-vendors-filters-form' ).serialize()
+            data: $('#dokan-vendors-filters-form').serialize() +
+                '&limit=' + $('input[name="dokan_vendors_limit"]').val() +
+                '&page=' + $('input[name="dokan_vendors_page"]').val(),
         };
+
+        let items = $('.dvf-items');
+        if ($('.dokan-vendors-filter-preloader').length === 0) {
+            items.prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
+            $('.dvf-pagination').prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
+        }
 
         $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
             if (resp.success) {
-                $('.dvf-items').html(resp.data);
+                items.html(resp.data.items);
+                $('.dvf-pagination').html(resp.data.paginations);
+                $('.dokan-vendors-filter-preloader').remove();
             }
         });
+    });
+
+    $('body').on('click', '.dvf-pages li a', function () {
+        $('input[name="dokan_vendors_page"]').val($(this).data('page'));
+        return false;
+    });
+
+    $('body').on('click', '.dvf-pagination li a', function () {
+        $('input[name="dokan_vendors_page"]').val($(this).data('page'));
+        return false;
     });
 });
 

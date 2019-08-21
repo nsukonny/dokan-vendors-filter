@@ -16,9 +16,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Check if class DokanVendorsFilter already exists
-if ( ! class_exists( 'DokanVendorsFilter' ) ) {
+if ( ! class_exists( 'DVF' ) ) {
 
-	class DokanVendorsFilter {
+	class DVF {
 
 		/**
 		 * The one and only true DokanVendorsFilter instance
@@ -39,9 +39,9 @@ if ( ! class_exists( 'DokanVendorsFilter' ) ) {
 		 */
 		public static function instance() {
 
-			if ( ! isset( self::$instance ) && ( ! self::$instance instanceof DokanVendorsFilter ) ) {
+			if ( ! isset( self::$instance ) && ( ! self::$instance instanceof DVF ) ) {
 
-				self::$instance = new DokanVendorsFilter;
+				self::$instance = new DVF;
 				self::$instance->setup_constants();
 				self::$instance->includes();
 				self::$instance->inits();
@@ -84,7 +84,7 @@ if ( ! class_exists( 'DokanVendorsFilter' ) ) {
 		 * @since  1.0.0
 		 */
 		public function includes() {
-			include DOKAN_VF_PLUGIN_PATH . 'classes/parameters.php';
+			include DOKAN_VF_PLUGIN_PATH . 'classes/params.php';
 			include DOKAN_VF_PLUGIN_PATH . 'classes/admin.php';
 			include DOKAN_VF_PLUGIN_PATH . 'classes/list.php';
 		}
@@ -107,9 +107,9 @@ if ( ! class_exists( 'DokanVendorsFilter' ) ) {
  * @since 1.0.0
  * @return object The one and only true DokanVendorsFilter instance.
  */
-function dokan_vendors_filter_runner() {
-	return DokanVendorsFilter::instance();
+function dvf_runner() {
+	return DVF::instance();
 }
 
 // Run plugin
-dokan_vendors_filter_runner();
+dvf_runner();
