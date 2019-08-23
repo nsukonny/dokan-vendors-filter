@@ -63,37 +63,46 @@ jQuery(document).ready(function () {
     });
 
     $('body').on('change', '.dvf-filter-section input[type="checkbox"]', function () {
-        var data = {
-            action: 'dokan_vendors_ajax_list',
-            data: $('#dokan-vendors-filters-form').serialize() +
-                '&limit=' + $('input[name="dokan_vendors_limit"]').val() +
-                '&page=' + $('input[name="dokan_vendors_page"]').val(),
-        };
-
-        var items = $('.dvf-items');
-        if ($('.dokan-vendors-filter-preloader').length === 0) {
-            items.prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
-            $('.dvf-pagination').prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
-        }
-
-        $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
-            if (resp.success) {
-                items.html(resp.data.items);
-                $('.dvf-pagination').html(resp.data.paginations);
-                $('.dokan-vendors-filter-preloader').remove();
-            }
-        });
+        loadVendors();
     });
 
     $('body').on('click', '.dvf-pages li a', function () {
-        $('input[name="dokan_vendors_page"]').val($(this).data('page'));
+        $('input[name="dokan_per_page"]').val($(this).data('per_page'));
+        $('input[name="dokan_vendors_page"]').val('1');
+        loadVendors();
+
         return false;
     });
 
     $('body').on('click', '.dvf-pagination li a', function () {
         $('input[name="dokan_vendors_page"]').val($(this).data('page'));
+        loadVendors();
+
         return false;
     });
+
+    function loadVendors() {
+        var data = {
+            action: 'dokan_vendors_ajax_list',
+            data: $('#dokan-vendors-filters-form').serialize() +
+                '&limit=' + $('input[name="dokan_per_page"]').val() +
+                '&page=' + $('input[name="dokan_vendors_page"]').val(),
+        };
+
+        if ($('.dokan-vendors-filter-preloader').length === 0) {
+            $('.dvf-wrapper').prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
+        }
+
+        var items = $('.dvf-items');
+        $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
+            if (resp.success) {
+                $('.dvf-items').html(resp.data.items);
+                $('.dvf-pagination').html(resp.data.paginations);
+                $('.dvf-pages').html(resp.data.pages);
+                $('.dokan-vendors-filter-preloader').remove();
+            }
+        });
+    }
 });
 
 function collectPreview(dropdownList) {

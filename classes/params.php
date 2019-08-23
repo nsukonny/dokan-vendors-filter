@@ -53,9 +53,17 @@ class DVF_Params {
 	 */
 	public static $fields = array(
 		self::FIELD_CITY    => 'City',
-		self::FIELD_COUNTRY => 'Country'
+		self::FIELD_COUNTRY => 'Country',
 	);
 
+	/**
+	 * Pages for display items per page
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var array
+	 */
+	public static $limits = array( 1, 2, 3 );
 
 	/**
 	 * Get plugin parameters
@@ -69,7 +77,7 @@ class DVF_Params {
 	public static function get_parameter( $name ) {
 		$params = self::get_parameters();
 
-		return ( isset( $params[ $name ] ) ) ? $params[ $name ] : '';
+		return ( isset( $params[ $name ] ) ) ? $params[ $name ] : array();
 	}
 
 	/**
@@ -109,7 +117,7 @@ class DVF_Params {
 			}
 		}
 
-		return update_option( self::SLUG . 'params', $params);
+		return update_option( self::SLUG . 'params', $params );
 	}
 
 }

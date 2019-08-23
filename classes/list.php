@@ -9,6 +9,33 @@
 class DVF_List {
 
 	/**
+	 * Maximum elements on one page
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var int
+	 */
+	private $limit = 1;
+
+	/**
+	 * Current page
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var int
+	 */
+	private $page = 1;
+
+	/**
+	 * Count pages left and right from current page
+	 *
+	 * @since 1.0.0
+	 *
+	 * @var int
+	 */
+	private $pages_lenght = 4;
+
+	/**
 	 * DokanVendorsFilterList constructor.
 	 *
 	 * @since 1.0.0
@@ -92,28 +119,22 @@ class DVF_List {
 	 */
 	private function get_header( $html ) {
 		$html .= '	<section class="dvf-head" >
-						
-						<input type="hidden" name="dokan_vendors_limit" value="30" >
-				        <ul class="dvf-pages" >
-				            <li ><span > Show</span ></li >
-				            <li ><a href = "" class="active" ><span > 30</span ></a ></li >
-				            <li ><a href = "" ><span > 60</span ></a ></li >
-				            <li ><a href = "" ><span > 120</span ></a ></li >
-				        </ul >
-				
-				        <ul class="dvf-pagination" >';
+						<input type="hidden" name="dokan_per_page" value="' . $this->limit . '" >';
 
-		$html .= $this->prepare_paginations();
+		$html .= $this->get_pages();
 
-		$html .= '		</ul >
-		
-						<input type="hidden" name="dokan_vendors_page" value="1" >
-				
-				        <div class="dvf-filter-button" >
-				            <a href = "#" > Filter</a >
-				        </div >
-				
-				    </section > ';
+		$html .= $this->get_paginations();
+
+		$html .= '		<input type="hidden" name="dokan_vendors_page" value="' . $this->page . '" >';
+
+		$filters = DVF_Params::get_parameter( 'filters' );
+		if ( count( $filters ) ) {
+			$html .= '		<div class="dvf-filter-button" >';
+			$html .= '			<a href = "#" > Filters</a >';
+			$html .= '		</div >';
+		}
+
+		$html .= '	</section > ';
 
 		return $html;
 	}
@@ -182,22 +203,13 @@ class DVF_List {
 	 * @return string
 	 */
 	private function get_footer( $html ) {
-		$html .= '	<section class="dvf-footer" >';
+		$html .= '<section class="dvf-footer" >';
 
-		$html .= '		<ul class="dvf-pages" >';
-		$html .= '			<li ><span > Show</span ></li >';
-		$html .= '			<li ><a href = "" class="active" ><span > 30</span ></a ></li >';
-		$html .= '			<li ><a href = "" ><span > 60</span ></a ></li >';
-		$html .= '			<li ><a href = "" ><span > 120</span ></a ></li >';
-		$html .= '		</ul >';
+		$html .= $this->get_pages();
 
-		$html .= '		<ul class="dvf-pagination" >';
+		$html .= $this->get_paginations();
 
-		$html .= $this->prepare_paginations();
-
-		$html .= '		</ul >';
-
-		$html .= '	</section > ';
+		$html .= '</section>';
 
 		return $html;
 	}
@@ -212,7 +224,9 @@ class DVF_List {
 	 * @return mixed|array
 	 */
 	private function get_vendors( $postdata = array() ) {
-		$args = array();
+		$args   = array();
+		$limit  = $this->limit;
+		$offset = 1;
 
 		if ( count( $postdata ) ) {
 			$args               = array( 'meta_query' );
@@ -232,8 +246,10 @@ class DVF_List {
 			}
 		}
 
-		$results = [];
-		$vendors = dokan_get_sellers( $args );
+		$results        = [];
+		$args['number'] = $this->limit;
+		$args['offset'] = ( $this->page - 1 ) * $this->limit;
+		$vendors        = dokan_get_sellers( $args );
 
 		foreach ( $vendors['users'] as $seller ) {
 			$vendor      = dokan()->vendor->get( $seller->ID );
@@ -341,7 +357,100 @@ class DVF_List {
 		return $results;
 	}
 
-	private function prepare_paginations( $postdata = array() ) {
+	/**
+	 * Make pagination block
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $postdata
+	 * @param string $ul
+	 *
+	 * @return string
+	 */
+	private function get_paginations( $postdata = array(), $ul = 'show' ) {
+		$html          = '';
+		$count_vendors = $this->get_count_vendors( $postdata );
+		$pages         = $count_vendors / $this->limit;
+
+		if ( $pages > 1 ) {
+			if ( 'show' == $ul ) {
+				$html .= '<ul class="dvf-pagination" >';
+			}
+
+			if ( 1 < $this->page ) {
+				$html .= '<li ><a href="#" data-page="' . ( $this->page - 1 ) . '" ><span ><</span ></a ></li >';
+			}
+
+			$pages_left = $this->page - $this->pages_lenght;
+			if ( 1 > $pages_left ) {
+				$pages_left = 1;
+			}
+
+			for ( $i = $pages_left; $i < $this->page; $i ++ ) {
+				$html .= '<li ><a href="#" data-page="' . $i . '"><span >' . $i . '</span ></a ></li >';
+			}
+
+			$html .= '<li ><a href="#" data-page="' . $this->page
+			         . '" class="active" ><span>' . $this->page . '</span ></a ></li >';
+
+			$pages_right = $this->page + $this->pages_lenght;
+			if ( $pages_right > $pages ) {
+				$pages_right = $pages;
+			}
+
+			for ( $i = $this->page + 1; $i <= $pages_right; $i ++ ) {
+				$html .= '<li ><a href="#" data-page="' . $i . '"><span >' . $i . '</span ></a ></li >';
+			}
+
+			if ( $pages > $this->page ) {
+				$html .= '<li ><a href="#" data-page="' . ( $this->page + 1 ) . '" ><span >></span ></a ></li >';
+			}
+
+			if ( 'show' == $ul ) {
+				$html .= '</ul >';
+			}
+		}
+
+		return $html;
+	}
+
+	private function get_pages( $postdata = array(), $ul = 'show' ) {
+		$count_vendors = $this->get_count_vendors( $postdata );
+		$pages         = $count_vendors / $this->limit;
+
+		$html = '';
+
+		if ( 'show' == $ul ) {
+			$html .= '	<ul class="dvf-pages" >';
+		}
+
+		$html .= '		<li ><span > Show</span ></li >';
+
+		foreach ( DVF_Params::$limits as $limit ) {
+			if ( $pages >= $limit ) {
+				$html .= '<li ><a href = "" data-per_page="' . $limit . '" ' .
+				         ( ( $limit == $this->limit ) ? 'class="active"' : '' ) . ' ><span > '
+				         . $limit . '</span ></a ></li >';
+			}
+		}
+
+		if ( 'show' == $ul ) {
+			$html .= '	</ul >';
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Get count vendors by filters or default
+	 *
+	 * @since 1.0.0
+	 *
+	 * @param array $postdata
+	 *
+	 * @return mixed
+	 */
+	private function get_count_vendors( $postdata = array() ) {
 		$args = array();
 
 		if ( count( $postdata ) ) {
@@ -364,15 +473,9 @@ class DVF_List {
 
 		$vendors = dokan_get_sellers( $args );
 
-		$html = '			<li ><a href="#" data-page="1" ><span ><</span ></a ></li >
-				            <li ><a href="#" data-page="1"  ><span > 1</span ></a ></li >
-				            <li ><a href="#" data-page="2"  class="active" ><span > 2</span ></a ></li >
-				            <li ><a href="#" data-page="3"  ><span > 3</span ></a ></li >
-				            <li ><a href="#" data-page="4"  ><span > 4</span ></a ></li >
-				            <li ><a href="#" data-page="5"  ><span > 5</span ></a ></li >
-				            <li ><a href="#" data-page="3"  ><span >></span ></a ></li >';
+		//wp_send_json_success( $args );
 
-		return $html;
+		return $vendors['count'];
 	}
 
 	/**
@@ -384,6 +487,16 @@ class DVF_List {
 		ob_clean();
 
 		parse_str( $_POST['data'], $postdata );
+
+		if ( isset( $postdata['limit'] ) ) {
+			$this->limit = $postdata['limit'];
+			unset($postdata['limit']);
+		}
+
+		if ( isset( $postdata['page'] ) ) {
+			$this->page = $postdata['page'];
+			unset($postdata['page']);
+		}
 
 		$vendors = $this->get_vendors( $postdata );
 
@@ -399,7 +512,8 @@ class DVF_List {
 
 		$answer = array(
 			'items'       => $items,
-			'paginations' => $this->prepare_paginations( $postdata )
+			'paginations' => $this->get_paginations( $postdata, 'hide' ),
+			'pages'       => $this->get_pages( $postdata, 'hide' ),
 		);
 
 		wp_send_json_success( $answer );

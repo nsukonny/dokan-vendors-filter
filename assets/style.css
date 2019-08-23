@@ -7,6 +7,7 @@
     font-weight: lighter;
     max-width: 1133px;
     margin: auto;
+    position:relative;
 }
 
 .dvf-wrapper section {
@@ -181,6 +182,7 @@
     text-align: center;
     line-height: 160px;
     color: #e2e2e2 !important;
+    z-index: 1;
 }
 
 .dvf-dropdown {
@@ -364,9 +366,12 @@
 
 .dokan-vendors-filter-preloader {
     position: absolute;
-    background-color: rgba(81, 81, 82, 0.3);
+    background-color: rgba(81, 81, 82, 0.6);
     width: 100%;
     height: 100%;
+    text-align: center;
+    line-height: 300px;
+    z-index: 1;
 }
 
 .dvf-pagination .dokan-vendors-filter-preloader img {
