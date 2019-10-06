@@ -1,7 +1,19 @@
-*** Changelog ***
+v1.0.3 -> October 02, 2019
+--------------------------
+* **[fix]** Plugin architecture
+* **[fix]** Display correct address in list
+* **[add]** Links to plugins page
+* **[add]** Multiply select for Town/City and State
+* **[add]** Filter by state
 
-= 1.0.1 =
-* Add parse/remove data to user_meta from Dokan stores
+v1.0.2 -> September 09, 2019
+--------------------------
+* **[fix]** Fixed styles for filter
 
-= 1.0.0 =
-* Beta release
+v1.0.1 -> August 16, 2019
+--------------------------
+* **[add]** Parse/Remove data to user_meta from Dokan stores
+
+v1.0.0 -> August 11, 2019
+--------------------------
+* **[add]** Beta release

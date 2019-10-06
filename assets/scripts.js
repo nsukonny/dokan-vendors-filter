@@ -63,12 +63,13 @@ jQuery(document).ready(function () {
     });
 
     $('body').on('change', '.dvf-filter-section input[type="checkbox"]', function () {
+        $('input[name="dokan_vendors_page"]').val(1);
         loadVendors();
     });
 
     $('body').on('click', '.dvf-pages li a', function () {
         $('input[name="dokan_per_page"]').val($(this).data('per_page'));
-        $('input[name="dokan_vendors_page"]').val('1');
+        $('input[name="dokan_vendors_page"]').val(1);
         loadVendors();
 
         return false;
@@ -95,6 +96,7 @@ jQuery(document).ready(function () {
 
         var items = $('.dvf-items');
         $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
+            console.log(resp);
             if (resp.success) {
                 $('.dvf-items').html(resp.data.items);
                 $('.dvf-pagination').html(resp.data.paginations);

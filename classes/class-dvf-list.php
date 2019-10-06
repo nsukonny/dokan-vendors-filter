@@ -15,7 +15,7 @@ class DVF_List {
 	 *
 	 * @var int
 	 */
-	private $limit = 1;
+	private $limit;
 
 	/**
 	 * Current page
@@ -41,11 +41,13 @@ class DVF_List {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		add_action( 'wp_ajax_dokan_vendors_ajax_list', array( $this, 'dokan_vendors_ajax_list' ), 99 );
-		add_action( 'wp_ajax_nopriv_dokan_vendors_ajax_list', array( $this, 'dokan_vendors_ajax_list' ), 99 );
+		add_action( 'wp_ajax_dokan_vendors_ajax_list', array( $this, 'ajax_vendors_list' ), 99 );
+		add_action( 'wp_ajax_nopriv_dokan_vendors_ajax_list', array( $this, 'ajax_vendors_list' ), 99 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_scripts' ) );
 
 		add_shortcode( 'dvf-list', array( $this, 'show_list' ) );
+
+		$this->limit = DVF_Params::$limits[0];
 	}
 
 	/**
@@ -60,8 +62,9 @@ class DVF_List {
 			array(),
 			DOKAN_VF_VERSION
 		);
+
 		wp_enqueue_script(
-			'dokan-vendors-script',
+			'dokan-vendors-scripts',
 			DOKAN_VF_PLUGIN_URL .
 			'assets/scripts.js',
 			array( 'jquery' ),
@@ -70,7 +73,7 @@ class DVF_List {
 		);
 
 		wp_localize_script(
-			'dokan-vendors-script',
+			'dokan-vendors-scripts',
 			'DokanVendorsFilter',
 			array(
 				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
@@ -157,21 +160,18 @@ class DVF_List {
 				continue;
 			}
 
-			$meta_values = $this->get_meta_values( DVF_Params::SLUG . $key );
+			$meta_values = self::get_meta_values( DVF_Params::SLUG . $key );
 
 			if ( count( $meta_values ) ) {
 				$html .= '	<div class="dvf-dropdown" >
 			                <div class="dvf-dropdown-title" >' . $field . '</div >
-			                <div class="dvf-dropdown-preview" >' . ( count( $meta_values ) > 1
-						? 'All ' . $field : $meta_values[0]['title'] ) . ' <i class="arrow down"></i ></div >
+			                <div class="dvf-dropdown-preview" >All <i class="arrow down"></i ></div >
 			                <div class="dvf-dropdown-list" >';
 
-				if ( count( $meta_values ) > 1 ) {
-					$html .= '  <input type="checkbox" value="all" 
-									name="' . DVF_Params::SLUG . $key . '[0]" 
-									id="' . $key . '_all" >
-								<label for="' . $key . '_all" >All ' . $field . ' </label >';
-				}
+				$html .= '  <input type="checkbox" value="all" 
+								name="' . DVF_Params::SLUG . $key . '[0]" 
+								id="' . $key . '_all" >
+							<label for="' . $key . '_all" >All ' . $field . ' </label >';
 
 				$i = 1;
 				foreach ( $meta_values as $meta_value ) {
@@ -229,27 +229,50 @@ class DVF_List {
 		$offset = 1;
 
 		if ( count( $postdata ) ) {
-			$args               = array( 'meta_query' );
-			$args['meta_query'] = [];
-			if ( count( $postdata ) > 1 ) {
+			$args               = array();
+			$args['meta_query'] = array();
+			if ( count( $postdata ) ) {
 				$args['meta_query']['relation'] = 'AND';
 			}
 
 			foreach ( $postdata as $key => $value ) {
 				if ( $value[0] != 'all' && $key != 'limit' && $key != 'page' ) {
-					$args['meta_query'][] = array(
-						'key'     => $key,
-						'value'   => $value,
-						'compare' => 'IN',
-					);
+					if (is_array($value)) {
+						$sub_meta_queries = array();
+						$sub_meta_queries['relation'] = 'OR';
+
+						foreach ($value as $val) {
+							$sub_meta_queries[] = array(
+								'key'     => $key,
+								'value'   => $val,
+								'compare' => '=',
+							);
+						}
+
+						$args['meta_query'][] = $sub_meta_queries;
+					} else {
+						$args['meta_query'][] = array(
+							'key'     => $key,
+							'value'   => $value,
+							'compare' => '=',
+						);
+						$args['meta_query']['relation'] = 'AND';
+					}
+				}
+				if ( 1 < count( $args['meta_query'] ) ) {
+					//$args['meta_query']['relation'] = 'OR';
 				}
 			}
 		}
 
+		$allowed_countries = WC()->countries->get_allowed_countries();;
+
 		$results        = [];
 		$args['number'] = $this->limit;
 		$args['offset'] = ( $this->page - 1 ) * $this->limit;
-		$vendors        = dokan_get_sellers( $args );
+		//$args['relation'] = 'AND';
+
+		$vendors = dokan_get_sellers( $args );
 
 		foreach ( $vendors['users'] as $seller ) {
 			$vendor      = dokan()->vendor->get( $seller->ID );
@@ -265,11 +288,21 @@ class DVF_List {
 				wp_get_attachment_image_src( $store_banner_id, 'kas_vendor_image' ) :
 				DOKAN_PLUGIN_ASSEST . '/images/default-store-banner.png';
 
+			$address = $store_info['address']['zip'];
+
+			if ( isset( $allowed_countries[ $store_info['address']['country'] ] ) ) {
+				$address .= ' ' . $allowed_countries[ $store_info['address']['country'] ];
+			}
+
+			$address .= ' ' . $store_info['address']['city'];
+			$address .= ' ' . $store_info['address']['street_1'];
+
 			$results[] = array(
 				'store_id'    => $vendor->data->ID,
 				'store_url'   => dokan_get_store_url( $vendor->data->ID ),
 				'store_name'  => $store_info['store_name'],
 				'description' => $description,
+				'address'     => $address,
 				'phone'       => $store_info['phone'],
 				'banner'      => ( is_array( $store_banner_url ) ?
 					esc_attr( $store_banner_url[0] ) : esc_attr( $store_banner_url ) ),
@@ -298,7 +331,7 @@ class DVF_List {
 			                <a href="' . $vendor['store_url'] . '" class="dvf-item-title" > 
 			                    ' . $vendor['store_name'] . '
 		                    </a >
-			                <div class="dvf_item_address" >' . $vendor['description'] . '</div >
+			                <div class="dvf_item_address" >' . $vendor['address'] . '</div >
 			                <div class="dvf-item-phone" >' . $vendor['phone'] . '</div >
 			            </div >
 		            </div >';
@@ -310,14 +343,15 @@ class DVF_List {
 	 * Get all isset meta values
 	 *
 	 * @since 1.0.0
+	 * @since 1.0.3 Changed to static
 	 *
 	 * @param string $key
 	 *
-	 * @return array|void
+	 * @return array
 	 */
-	private function get_meta_values( $key = '' ) {
+	public static function get_meta_values( $key = '' ) {
 		if ( empty( $key ) ) {
-			return;
+			return array();
 		}
 
 		global $wpdb;
@@ -326,20 +360,21 @@ class DVF_List {
 			$wpdb->prepare( "SELECT um.meta_value FROM {$wpdb->usermeta} um WHERE um.meta_key = %s", $key )
 		);
 
-		return $this->prepare_meta_titles( array_unique( $results ), $key );
+		return self::prepare_meta_titles( array_unique( $results ), $key );
 	}
 
 	/**
 	 * Add titles with country names and other
 	 *
 	 * @since 1.0.0
+	 * @since 1.0.3 Change method to static
 	 *
 	 * @param $meta_values
 	 * @param $key
 	 *
 	 * @return array
 	 */
-	private function prepare_meta_titles( $meta_values, $key ) {
+	private static function prepare_meta_titles( $meta_values, $key ) {
 		$results = [];
 		$titles  = [];
 
@@ -348,6 +383,10 @@ class DVF_List {
 		}
 
 		foreach ( $meta_values as $meta_value ) {
+			if ( empty( $meta_value ) ) {
+				continue;
+			}
+
 			$results[] = array(
 				'value' => $meta_value,
 				'title' => isset( $titles[ $meta_value ] ) ? $titles[ $meta_value ] : $meta_value,
@@ -370,16 +409,19 @@ class DVF_List {
 	private function get_paginations( $postdata = array(), $ul = 'show' ) {
 		$html          = '';
 		$count_vendors = $this->get_count_vendors( $postdata );
-		$pages         = $count_vendors / $this->limit;
+		$pages         = ceil( $count_vendors / $this->limit );
 
 		if ( $pages > 1 ) {
 			if ( 'show' == $ul ) {
 				$html .= '<ul class="dvf-pagination" >';
 			}
 
-			if ( 1 < $this->page ) {
-				$html .= '<li ><a href="#" data-page="' . ( $this->page - 1 ) . '" ><span ><</span ></a ></li >';
+			$page_before = $this->page - 1;
+			if ( 1 > $page_before ) {
+				$page_before = 1;
 			}
+
+			$html .= '<li ><a href="#" data-page="' . $page_before . '" ><span ><</span ></a ></li >';
 
 			$pages_left = $this->page - $this->pages_lenght;
 			if ( 1 > $pages_left ) {
@@ -402,9 +444,12 @@ class DVF_List {
 				$html .= '<li ><a href="#" data-page="' . $i . '"><span >' . $i . '</span ></a ></li >';
 			}
 
-			if ( $pages > $this->page ) {
-				$html .= '<li ><a href="#" data-page="' . ( $this->page + 1 ) . '" ><span >></span ></a ></li >';
+			$page_next = $this->page + 1;
+			if ( $page_next > $pages ) {
+				$page_next = $pages;
 			}
+
+			$html .= '<li ><a href="#" data-page="' . $page_next . '" ><span >></span ></a ></li >';
 
 			if ( 'show' == $ul ) {
 				$html .= '</ul >';
@@ -415,9 +460,6 @@ class DVF_List {
 	}
 
 	private function get_pages( $postdata = array(), $ul = 'show' ) {
-		$count_vendors = $this->get_count_vendors( $postdata );
-		$pages         = $count_vendors / $this->limit;
-
 		$html = '';
 
 		if ( 'show' == $ul ) {
@@ -427,11 +469,9 @@ class DVF_List {
 		$html .= '		<li ><span > Show</span ></li >';
 
 		foreach ( DVF_Params::$limits as $limit ) {
-			if ( $pages >= $limit ) {
-				$html .= '<li ><a href = "" data-per_page="' . $limit . '" ' .
-				         ( ( $limit == $this->limit ) ? 'class="active"' : '' ) . ' ><span > '
-				         . $limit . '</span ></a ></li >';
-			}
+			$html .= '<li ><a href = "" data-per_page="' . $limit . '" ' .
+			         ( ( $limit == $this->limit ) ? 'class="active"' : '' ) . ' ><span > '
+			         . $limit . '</span ></a ></li >';
 		}
 
 		if ( 'show' == $ul ) {
@@ -471,9 +511,10 @@ class DVF_List {
 			}
 		}
 
-		$vendors = dokan_get_sellers( $args );
+		//TODO Temp disable call dokan_get_sellers
+		return 333;
 
-		//wp_send_json_success( $args );
+		$vendors = dokan_get_sellers( $args );
 
 		return $vendors['count'];
 	}
@@ -483,19 +524,19 @@ class DVF_List {
 	 *
 	 * @since 1.0.0
 	 */
-	public function dokan_vendors_ajax_list() {
+	public function ajax_vendors_list() {
 		ob_clean();
 
 		parse_str( $_POST['data'], $postdata );
 
 		if ( isset( $postdata['limit'] ) ) {
 			$this->limit = $postdata['limit'];
-			unset($postdata['limit']);
+			unset( $postdata['limit'] );
 		}
 
 		if ( isset( $postdata['page'] ) ) {
 			$this->page = $postdata['page'];
-			unset($postdata['page']);
+			unset( $postdata['page'] );
 		}
 
 		$vendors = $this->get_vendors( $postdata );

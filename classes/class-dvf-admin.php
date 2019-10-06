@@ -14,10 +14,57 @@ class DVF_Admin {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		add_action( 'personal_options_update', array( $this, 'save_meta_fields' ) );
-		add_action( 'edit_user_profile_update', array( $this, 'save_meta_fields' ) );
+		add_action( 'personal_options_update', array( $this, 'save_meta_fields' ), 10);
+		add_action( 'edit_user_profile_update', array( $this, 'save_meta_fields' ), 10);
 
 		add_action( 'admin_menu', array( $this, 'add_link_to_menu' ) );
+
+		add_action( 'admin_enqueue_scripts', array( $this, 'add_scripts' ) );
+
+		$this->includes();
+	}
+
+	/**
+	 * Load classes for admin part
+	 *
+	 * @since 1.0.3
+	 *
+	 * @return void
+	 */
+	public function includes() {
+		include_once DOKAN_VF_PLUGIN_PATH . 'classes/class-dvf-admin-user-edit.php';
+	}
+
+	/**
+	 * Load styles and scripts
+	 *
+	 * @since  1.0.3
+	 */
+	public function add_scripts() {
+		wp_enqueue_script(
+			'dokan-vendors-admin-scripts',
+			DOKAN_VF_PLUGIN_URL .
+			'assets/admin/admin-scripts.js',
+			array( 'jquery' ),
+			DOKAN_VF_VERSION,
+			true
+		);
+
+		wp_enqueue_style(
+			'dokan-vendors-admin-style',
+			DOKAN_VF_PLUGIN_URL . 'assets/admin/admin-style.css',
+			array(),
+			DOKAN_VF_VERSION
+		);
+
+		wp_localize_script(
+			'dokan-vendors-admin-scripts',
+			'DokanVendorsAdmin',
+			array(
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+				'pluginUrl' => DOKAN_VF_PLUGIN_URL,
+			)
+		);
 	}
 
 	/**
@@ -32,7 +79,8 @@ class DVF_Admin {
 
 		$post_data = wp_unslash( $_POST );
 
-		if ( isset( $post_data['dokan_update_user_profile_info_nonce'] ) && ! wp_verify_nonce( $post_data['dokan_update_user_profile_info_nonce'], 'dokan_update_user_profile_info' ) ) {
+		if ( isset( $post_data['dokan_update_user_profile_info_nonce'] )
+		     && ! wp_verify_nonce( $post_data['dokan_update_user_profile_info_nonce'], 'dokan_update_user_profile_info' ) ) {
 			return;
 		}
 
@@ -56,10 +104,14 @@ class DVF_Admin {
 	 * @since 1.0.0
 	 */
 	function add_link_to_menu() {
-		add_menu_page( __( 'Vendors filter' ), __( 'Vendors filter' ), 'manage_options', DVF_Params::SLUG . 'settings', array(
-			$this,
-			'display_settings'
-		), '', 56 );
+		add_submenu_page(
+			'dokan',
+			__( 'Vendors filter' ),
+			__( 'Vendors filter' ),
+			'manage_options',
+			DVF_Params::SLUG . 'settings',
+			array( $this, 'display_settings' )
+		);
 	}
 
 	/**
@@ -68,7 +120,7 @@ class DVF_Admin {
 	 * @since 1.0.0
 	 */
 	public function display_settings() {
-		include DOKAN_VF_PLUGIN_PATH . 'classes/admin-settings.php';
+		include DOKAN_VF_PLUGIN_PATH . 'classes/class-dvf-admin-settings.php';
 	}
 }
 

@@ -14,7 +14,7 @@ class DVF_Params {
 	 *
 	 * @since 1.0.0
 	 */
-	const SLUG = 'dokan_vf_';
+	const SLUG = 'dokan-vf-';
 
 	/**
 	 * Field city
@@ -29,6 +29,13 @@ class DVF_Params {
 	 * @since 1.0.0
 	 */
 	const FIELD_COUNTRY = 'country';
+
+	/**
+	 * Field country
+	 *
+	 * @since 1.0.3
+	 */
+	const FIELD_STATE = 'state';
 
 	/**
 	 * Parameter field active status
@@ -48,12 +55,34 @@ class DVF_Params {
 	 * Filter fields array
 	 *
 	 * @since 1.0.0
+	 * @since 1.0.3 Added states
 	 *
 	 * @var array
 	 */
 	public static $fields = array(
-		self::FIELD_CITY    => 'City',
-		self::FIELD_COUNTRY => 'Country',
+		self::FIELD_CITY    => 'Cities',
+		self::FIELD_COUNTRY => 'Countries',
+		self::FIELD_STATE   => 'States',
+	);
+
+	/**
+	 * List of fields, need to change to multiply
+	 *
+	 * @since 1.0.3
+	 *
+	 * @var array
+	 */
+	public static $multiply_field_for = array(
+		array(
+			'title'  => 'Town/City',
+			'key'    => 'city',
+			'target' => 'dokan_store_address[city]',
+		),
+		array(
+			'title'  => 'State/County',
+			'key'    => 'state',
+			'target' => 'dokan_store_address[state]',
+		),
 	);
 
 	/**
@@ -63,7 +92,7 @@ class DVF_Params {
 	 *
 	 * @var array
 	 */
-	public static $limits = array( 1, 2, 3 );
+	public static $limits = array( 8, 16, 32 );
 
 	/**
 	 * Get plugin parameters
