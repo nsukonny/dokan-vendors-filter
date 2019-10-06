@@ -92,7 +92,7 @@ class DVF_Params {
 	 *
 	 * @var array
 	 */
-	public static $limits = array( 8, 16, 32 );
+	public static $limits = array( 2, 8, 16, 32 );
 
 	/**
 	 * Get plugin parameters

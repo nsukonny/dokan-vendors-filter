@@ -1,23 +1,23 @@
 jQuery(document).ready(function () {
-    var toggleSpeed = 350,
-        $ = jQuery;
+    let $ = jQuery,
+        body = $('body');
 
-    $('body').on('click', '.dvf-filter-button a', function () {
-        var filterSection = $('.dvf-filter-section');
+    body.on('click', '.dvf-filter-button a', function () {
+        let filterSection = $('.dvf-filter-section');
 
-        filterSection.toggle(toggleSpeed);
+        filterSection.toggleClass('active');
 
         return false;
     });
 
-    $('body').on('click', '.dvf-dropdown-preview', function (e) {
+    body.on('click', '.dvf-dropdown-preview', function (e) {
         e.stopPropagation();
 
-        var list = $(this).next(),
+        let list = $(this).next(),
             needOpen = !list.is(':visible');
 
         $('.dvf-dropdown-list').each(function () {
-            var childThat = $(this);
+            let childThat = $(this);
             if (childThat.is(':visible')) {
                 childThat.toggle(toggleSpeed);
                 childThat.parent().find('.arrow').removeClass('up').addClass('down');
@@ -30,8 +30,8 @@ jQuery(document).ready(function () {
         }
     });
 
-    $('body').on('change', '.dvf-filter-section input', function (e) {
-        var that = $(this);
+    body.on('change', '.dvf-filter-section input', function (e) {
+        let that = $(this);
 
         if (that.val() == 'all') {
             that.parent().find('input').each(function () {
@@ -50,8 +50,8 @@ jQuery(document).ready(function () {
         collectPreview(that.closest('.dvf-dropdown-list'));
     });
 
-    $('body').click(function (e) {
-        var stopPropagination = ['LABEL', 'INPUT'];
+    body.click(function (e) {
+        let stopPropagination = ['LABEL', 'INPUT'];
 
         if (!stopPropagination.includes(e.target.tagName)) {
             $('.dvf-dropdown-list').each(function () {
@@ -62,46 +62,59 @@ jQuery(document).ready(function () {
         }
     });
 
-    $('body').on('change', '.dvf-filter-section input[type="checkbox"]', function () {
-        $('input[name="dokan_vendors_page"]').val(1);
+    body.on('change', '.dvf-filter-section input[type="checkbox"]', function () {
+        $('input[name="dvf_page"]').val(1);
+
         loadVendors();
     });
 
-    $('body').on('click', '.dvf-pages li a', function () {
-        $('input[name="dokan_per_page"]').val($(this).data('per_page'));
-        $('input[name="dokan_vendors_page"]').val(1);
-        loadVendors();
+    body.on('click', '.dvf-pages li a', function () {
+        $('input[name="dvf_per_page"]').val($(this).data('per_page'));
+        $('input[name="dvf_page"]').val(1);
 
-        return false;
-    });
-
-    $('body').on('click', '.dvf-pagination li a', function () {
-        $('input[name="dokan_vendors_page"]').val($(this).data('page'));
         loadVendors();
 
         return false;
     });
 
-    function loadVendors() {
-        var data = {
-            action: 'dokan_vendors_ajax_list',
-            data: $('#dokan-vendors-filters-form').serialize() +
-                '&limit=' + $('input[name="dokan_per_page"]').val() +
-                '&page=' + $('input[name="dokan_vendors_page"]').val(),
-        };
+    body.on('click', '.dvf-pagination li a', function () {
+        $('input[name="dvf_page"]').val($(this).data('page'));
 
-        if ($('.dokan-vendors-filter-preloader').length === 0) {
-            $('.dvf-wrapper').prepend('<div class="dokan-vendors-filter-preloader"><img src="' + DokanVendorsFilter.pluginUrl + 'assets/img/preloader.svg" ></div>');
+        loadVendors(false);
+
+        return false;
+    });
+
+    var lastQueryNumber = 0;
+
+    function loadVendors(reloadPages = true) {
+        lastQueryNumber++;
+
+        let data = {
+                action: 'dokan_vendors_ajax_list',
+                data: $('#dokan-vendors-filters-form').serialize() +
+                    '&limit=' + $('input[name="dvf_per_page"]').val() +
+                    '&page=' + $('input[name="dvf_page"]').val(),
+            },
+            waitQueryNumber = lastQueryNumber,
+            itemsElement = $('.dvf-items'),
+            paginationElement = $('.dvf-pagination'),
+            pagesElement = $('.dvf-pages');
+
+        itemsElement.addClass('dvf-wait-reload');
+        paginationElement.addClass('dvf-wait-reload');
+        if (reloadPages) {
+            pagesElement.addClass('dvf-wait-reload');
         }
 
-        var items = $('.dvf-items');
         $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
-            console.log(resp);
-            if (resp.success) {
-                $('.dvf-items').html(resp.data.items);
-                $('.dvf-pagination').html(resp.data.paginations);
-                $('.dvf-pages').html(resp.data.pages);
-                $('.dokan-vendors-filter-preloader').remove();
+            if (resp.success && waitQueryNumber === lastQueryNumber) {
+                itemsElement.html(resp.data.items);
+                itemsElement.removeClass('dvf-wait-reload');
+                paginationElement.html(resp.data.paginations);
+                paginationElement.removeClass('dvf-wait-reload');
+                pagesElement.html(resp.data.pages);
+                pagesElement.removeClass('dvf-wait-reload');
             }
         });
     }

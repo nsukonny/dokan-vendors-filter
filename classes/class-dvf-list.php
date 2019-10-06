@@ -121,14 +121,11 @@ class DVF_List {
 	 * @return string
 	 */
 	private function get_header( $html ) {
-		$html .= '	<section class="dvf-head" >
-						<input type="hidden" name="dokan_per_page" value="' . $this->limit . '" >';
+		$html .= '	<section class="dvf-head" >';
 
 		$html .= $this->get_pages();
 
 		$html .= $this->get_paginations();
-
-		$html .= '		<input type="hidden" name="dokan_vendors_page" value="' . $this->page . '" >';
 
 		$filters = DVF_Params::get_parameter( 'filters' );
 		if ( count( $filters ) ) {
@@ -152,7 +149,8 @@ class DVF_List {
 	private function get_filters( $html ) {
 
 		$html .= '	<section class="dvf-filter-section" >
-						<form id="dokan-vendors-filters-form">';
+						<form action="" method="post" id="dokan-vendors-filters-form" name="dvf-filter-form" >';
+
 
 		$filters = DVF_Params::get_parameter( 'filters' );
 		foreach ( DVF_Params::$fields as $key => $field ) {
@@ -188,7 +186,9 @@ class DVF_List {
 
 		}
 
-		$html .= '		</form>
+		$html .= '		<input type="hidden" name="dvf_page" value="' . $this->page . '" >
+						<input type="hidden" name="dvf_per_page" value="' . $this->limit . '" >
+						</form>
 						<div class="clear" ></div >
 					</section>';
 
@@ -224,9 +224,7 @@ class DVF_List {
 	 * @return mixed|array
 	 */
 	private function get_vendors( $postdata = array() ) {
-		$args   = array();
-		$limit  = $this->limit;
-		$offset = 1;
+		$args = array();
 
 		if ( count( $postdata ) ) {
 			$args               = array();
@@ -236,12 +234,12 @@ class DVF_List {
 			}
 
 			foreach ( $postdata as $key => $value ) {
-				if ( $value[0] != 'all' && $key != 'limit' && $key != 'page' ) {
-					if (is_array($value)) {
-						$sub_meta_queries = array();
+				if ( $value[0] != 'all' && $key != 'dvf_page' && $key != 'dvf_per_page' ) {
+					if ( is_array( $value ) ) {
+						$sub_meta_queries             = array();
 						$sub_meta_queries['relation'] = 'OR';
 
-						foreach ($value as $val) {
+						foreach ( $value as $val ) {
 							$sub_meta_queries[] = array(
 								'key'     => $key,
 								'value'   => $val,
@@ -251,16 +249,13 @@ class DVF_List {
 
 						$args['meta_query'][] = $sub_meta_queries;
 					} else {
-						$args['meta_query'][] = array(
+						$args['meta_query'][]           = array(
 							'key'     => $key,
 							'value'   => $value,
 							'compare' => '=',
 						);
 						$args['meta_query']['relation'] = 'AND';
 					}
-				}
-				if ( 1 < count( $args['meta_query'] ) ) {
-					//$args['meta_query']['relation'] = 'OR';
 				}
 			}
 		}
@@ -270,7 +265,6 @@ class DVF_List {
 		$results        = [];
 		$args['number'] = $this->limit;
 		$args['offset'] = ( $this->page - 1 ) * $this->limit;
-		//$args['relation'] = 'AND';
 
 		$vendors = dokan_get_sellers( $args );
 
@@ -491,6 +485,8 @@ class DVF_List {
 	 * @return mixed
 	 */
 	private function get_count_vendors( $postdata = array() ) {
+		//TODO Try to get count from get_vendors
+
 		$args = array();
 
 		if ( count( $postdata ) ) {
@@ -510,9 +506,6 @@ class DVF_List {
 				}
 			}
 		}
-
-		//TODO Temp disable call dokan_get_sellers
-		return 333;
 
 		$vendors = dokan_get_sellers( $args );
 
