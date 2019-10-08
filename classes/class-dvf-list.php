@@ -36,6 +36,15 @@ class DVF_List {
 	private $pages_lenght = 4;
 
 	/**
+	 * Count total vendors of last query
+	 *
+	 * @since 1.0.4
+	 *
+	 * @var int
+	 */
+	private $vendors_total_count = 0;
+
+	/**
 	 * DokanVendorsFilterList constructor.
 	 *
 	 * @since 1.0.0
@@ -260,7 +269,7 @@ class DVF_List {
 			}
 		}
 
-		$allowed_countries = WC()->countries->get_allowed_countries();;
+		$allowed_countries = WC()->countries->get_allowed_countries();
 
 		$results        = [];
 		$args['number'] = $this->limit;
@@ -466,6 +475,10 @@ class DVF_List {
 			$html .= '<li ><a href = "" data-per_page="' . $limit . '" ' .
 			         ( ( $limit == $this->limit ) ? 'class="active"' : '' ) . ' ><span > '
 			         . $limit . '</span ></a ></li >';
+
+			if ( $limit >= $this->vendors_total_count ) {
+				break;
+			}
 		}
 
 		if ( 'show' == $ul ) {
@@ -485,31 +498,48 @@ class DVF_List {
 	 * @return mixed
 	 */
 	private function get_count_vendors( $postdata = array() ) {
-		//TODO Try to get count from get_vendors
 
 		$args = array();
 
 		if ( count( $postdata ) ) {
-			$args               = array( 'meta_query' );
-			$args['meta_query'] = [];
-			if ( count( $postdata ) > 1 ) {
+			$args               = array();
+			$args['meta_query'] = array();
+			if ( count( $postdata ) ) {
 				$args['meta_query']['relation'] = 'AND';
 			}
 
 			foreach ( $postdata as $key => $value ) {
-				if ( $value[0] != 'all' ) {
-					$args['meta_query'][] = array(
-						'key'     => $key,
-						'value'   => $value,
-						'compare' => 'IN',
-					);
+				if ( $value[0] != 'all' && $key != 'dvf_page' && $key != 'dvf_per_page' ) {
+					if ( is_array( $value ) ) {
+						$sub_meta_queries             = array();
+						$sub_meta_queries['relation'] = 'OR';
+
+						foreach ( $value as $val ) {
+							$sub_meta_queries[] = array(
+								'key'     => $key,
+								'value'   => $val,
+								'compare' => '=',
+							);
+						}
+
+						$args['meta_query'][] = $sub_meta_queries;
+					} else {
+						$args['meta_query'][]           = array(
+							'key'     => $key,
+							'value'   => $value,
+							'compare' => '=',
+						);
+						$args['meta_query']['relation'] = 'AND';
+					}
 				}
 			}
 		}
 
 		$vendors = dokan_get_sellers( $args );
 
-		return $vendors['count'];
+		$this->vendors_total_count = $vendors['count'];
+
+		return $this->vendors_total_count;
 	}
 
 	/**

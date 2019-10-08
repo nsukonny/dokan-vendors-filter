@@ -1,6 +1,7 @@
 jQuery(document).ready(function () {
     let $ = jQuery,
-        body = $('body');
+        body = $('body'),
+        toggleSpeed = 300;
 
     body.on('click', '.dvf-filter-button a', function () {
         let filterSection = $('.dvf-filter-section');

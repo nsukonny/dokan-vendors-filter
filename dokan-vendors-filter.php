@@ -4,7 +4,7 @@
  * Plugin Name: Dokan Vendors Filter
  * Plugin URI: http://nsukonny.ru/dokan-vendors-filter
  * Description: Display vendors list with filters
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: nSukonny
  * Author URI: http://nsukonny.ru
  * License: A "Slug" license name e.g. GPL2
@@ -88,7 +88,7 @@ if ( ! class_exists( 'DVF' ) ) {
 
 			// Plugin version
 			if ( ! defined( 'DOKAN_VF_VERSION' ) ) {
-				define( 'DOKAN_VF_VERSION', '1.0.0' . time() );
+				define( 'DOKAN_VF_VERSION', '1.0.4' . time() );
 			}
 
 			// Plugin folder path
