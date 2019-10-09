@@ -184,6 +184,7 @@ if ( ! class_exists( 'DVF' ) ) {
 		 *
 		 * @return void
 		 */
+		//TODO Envato want to change this "The plugin should not delete any of its data upon deactivation"
 		static function plugin_deactivation() {
 			delete_option( DVF_Params::SLUG . 'params' );
 

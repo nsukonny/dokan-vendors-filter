@@ -162,7 +162,7 @@ class DVF_Admin_User_Edit {
 
 		parse_str( $_POST['data'], $postdata );
 
-		if ( 0 === strlen( trim( $postdata['dvf_new_element'] ) ) ) {
+		if ( 0 == strlen( trim( $postdata['dvf_new_element'] ) ) ) {
 			wp_send_json_error( 'Empty new element name' );
 			wp_die();
 		}

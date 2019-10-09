@@ -300,7 +300,7 @@ class DVF_List {
 
 		$allowed_countries = WC()->countries->get_allowed_countries();
 
-		if ( $this->show_mode === DVF_Params::SHOW_MODE_LIST ) {
+		if ( $this->show_mode == DVF_Params::SHOW_MODE_LIST ) {
 			$args['number'] = $this->limit;
 			$args['offset'] = ( $this->page - 1 ) * $this->limit;
 		}
