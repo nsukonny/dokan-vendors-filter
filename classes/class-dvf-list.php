@@ -97,7 +97,7 @@ class DVF_List {
 
 		wp_enqueue_script(
 			'dokan-vendors-google-map',
-			'https://maps.googleapis.com/maps/api/js?key=AIzaSyACmgyqq6TSvuKK6gxI6s-QzJOXRTzhy7A',
+			'https://maps.googleapis.com/maps/api/js?key=YOUR_KEY',
 			false,
 			DOKAN_VF_VERSION
 		);
