@@ -51,6 +51,7 @@ class DVF_Admin_Settings {
 	private function make_tabs() {
 		$html = '<nav class="nav-tab-wrapper dvf-tabs">
 					<a href="#" class="nav-tab nav-tab-active" >General</a>
+					<a href="#map" class="nav-tab" >Map</a>
 				</nav>';
 
 		return $html;

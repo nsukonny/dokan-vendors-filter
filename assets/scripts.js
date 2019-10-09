@@ -86,9 +86,15 @@ jQuery(document).ready(function () {
         return false;
     });
 
-    var lastQueryNumber = 0;
+    let lastQueryNumber = 0;
 
     function loadVendors(reloadPages = true) {
+        let itemsElement = $('.dvf-items');
+
+        if (0 === itemsElement.length) {
+            return false;
+        }
+
         lastQueryNumber++;
 
         let data = {
@@ -98,7 +104,6 @@ jQuery(document).ready(function () {
                     '&page=' + $('input[name="dvf_page"]').val(),
             },
             waitQueryNumber = lastQueryNumber,
-            itemsElement = $('.dvf-items'),
             paginationElement = $('.dvf-pagination'),
             pagesElement = $('.dvf-pages');
 
@@ -119,15 +124,63 @@ jQuery(document).ready(function () {
             }
         });
     }
+
+    if ($('#dvf-google-map').length) {
+
+        let map,
+            geoCoder,
+            mapOptions = {
+                zoom: 8,
+                center: {lat: -34.397, lng: 150.644}
+            };
+
+        function initGoogleMaps() {
+            geoCoder = new google.maps.Geocoder();
+            map = new google.maps.Map(document.getElementById('dvf-google-map'),
+                mapOptions);
+
+            dvfReinitGoogleMap();
+        }
+
+        body.on('change', '.dvf-filter-section input[type="checkbox"]', function () {
+            dvfReinitGoogleMap();
+        });
+
+        function dvfReinitGoogleMap() {
+            lastQueryNumber++;
+
+            let data = {
+                    action: 'dokan_vendors_ajax_map',
+                    data: $('#dokan-vendors-filters-form').serialize(),
+                },
+                waitQueryNumber = lastQueryNumber;
+
+            $('#dvf-google-map').addClass('dvf-wait-reload');
+            dvfDeleteMarkers();
+
+            $.post(DokanVendorsFilter.ajaxUrl, data, function (resp) {
+                if (resp.success && waitQueryNumber === lastQueryNumber) {
+                    let dataLength = resp.data.vendors.length;
+                    if (0 < dataLength) {
+                        for (let i = 0; i < dataLength; i++) {
+                            dvfMakeMarker(map, geoCoder, resp.data.vendors[i]);
+                        }
+                    }
+                }
+            });
+        }
+
+        google.maps.event.addDomListener(window, 'load', initGoogleMaps);
+    }
 });
 
 function collectPreview(dropdownList) {
-    var title = '',
+    let title = '',
         i = 0,
         previewMaxLenght = parseInt(dropdownList.parent().width() / 9);
 
     dropdownList.find('input').each(function () {
-        var that = jQuery(this);
+        let that = jQuery(this);
 
         if (that.is(':checked')) {
             if (i > 0) {
@@ -147,4 +200,58 @@ function collectPreview(dropdownList) {
     title += '<i class="arrow up"></i>';
 
     dropdownList.parent().find('.dvf-dropdown-preview').html(title);
+}
+
+function dvfMakeMarker(map, geoCoder, data) {
+    geoCoder.geocode({'address': data['address']}, function (results, status) {
+        if (status === 'OK') {
+            dvfAddMarker(map, results[0].geometry.location, data);
+        }
+    });
+}
+
+let googleMarkers = [];
+
+function dvfAddMarker(map, location, vendorData) {
+    let marker = new google.maps.Marker({
+        position: location,
+        map: map
+    });
+
+    googleMarkers.push(marker);
+
+    if (1 === googleMarkers.length) {
+        map.setCenter(location);
+        jQuery('#dvf-google-map').removeClass('dvf-wait-reload');
+    }
+
+    let markerContent = '<div class="dvf-marker-thumb">' +
+        '   <a href="' + vendorData['store_url'] + '" target="_blank"><img src="' + vendorData['banner'] + '"></a>' +
+        '</div>' +
+        '<div class="dvf-marker-title">' +
+        '   <a href="' + vendorData['store_url'] + '" target="_blank">' + vendorData['store_name'] + '</a>' +
+        '</div>' +
+        '<div class="dvf-marker-address">' + vendorData['address'] + '</div>';
+
+    if (3 < vendorData['phone'].length) {
+        markerContent += '<div class="dvf-marker-phone">' +
+            '   <a href="tel:' + vendorData['phone'] + '">' + vendorData['phone'] + '</a>' +
+            '</div>';
+    }
+
+
+    let markerDetail = new google.maps.InfoWindow({
+        content: markerContent
+    });
+
+    google.maps.event.addListener(marker, 'click', function () {
+        markerDetail.open(map, marker);
+    });
+}
+
+function dvfDeleteMarkers() {
+    for (let i = 0; i < googleMarkers.length; i++) {
+        googleMarkers[i].setMap(null);
+    }
+    googleMarkers = [];
 }

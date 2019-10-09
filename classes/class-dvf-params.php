@@ -52,6 +52,20 @@ class DVF_Params {
 	const INACTIVE = 'off';
 
 	/**
+	 * Display results as list
+	 *
+	 * @since 1.0.5
+	 */
+	const SHOW_MODE_LIST = 'list';
+
+	/**
+	 * Display results on map
+	 *
+	 * @since 1.0.5
+	 */
+	const SHOW_MODE_MAP = 'map';
+
+	/**
 	 * Filter fields array
 	 *
 	 * @since 1.0.0

@@ -45,13 +45,27 @@ class DVF_List {
 	private $vendors_total_count = 0;
 
 	/**
+	 * Changer display mode (map or list)
+	 *
+	 * @since 1.0.5
+	 *
+	 * @var string
+	 */
+	private $show_mode = 'list';
+
+	/**
 	 * DokanVendorsFilterList constructor.
 	 *
 	 * @since 1.0.0
+	 * @since 1.0.5 //Added ajax methods for google map
 	 */
 	public function __construct() {
 		add_action( 'wp_ajax_dokan_vendors_ajax_list', array( $this, 'ajax_vendors_list' ), 99 );
 		add_action( 'wp_ajax_nopriv_dokan_vendors_ajax_list', array( $this, 'ajax_vendors_list' ), 99 );
+
+		add_action( 'wp_ajax_dokan_vendors_ajax_map', array( $this, 'ajax_vendors_map' ), 99 );
+		add_action( 'wp_ajax_nopriv_dokan_vendors_ajax_map', array( $this, 'ajax_vendors_map' ), 99 );
+
 		add_action( 'wp_enqueue_scripts', array( $this, 'add_scripts' ) );
 
 		add_shortcode( 'dvf-list', array( $this, 'show_list' ) );
@@ -81,6 +95,13 @@ class DVF_List {
 			true
 		);
 
+		wp_enqueue_script(
+			'dokan-vendors-google-map',
+			'https://maps.googleapis.com/maps/api/js?key=AIzaSyACmgyqq6TSvuKK6gxI6s-QzJOXRTzhy7A',
+			false,
+			DOKAN_VF_VERSION
+		);
+
 		wp_localize_script(
 			'dokan-vendors-scripts',
 			'DokanVendorsFilter',
@@ -101,19 +122,27 @@ class DVF_List {
 	 * @return string
 	 */
 	public function show_list( $attrs ) {
+		if ( ! empty( $attrs ) && in_array( DVF_Params::SHOW_MODE_MAP, $attrs ) ) {
+			$this->show_mode = DVF_Params::SHOW_MODE_MAP;
+		}
+
 		$html    = '<div class="dvf-wrapper">';
 		$html    = $this->get_header( $html );
 		$html    = $this->get_filters( $html );
 		$vendors = $this->get_vendors();
 
 		if ( count( $vendors ) ) {
-			$html .= '	<section class="dvf-items">';
+			if ( $this->show_mode == DVF_Params::SHOW_MODE_MAP ) {
+				$html .= '<div id="dvf-google-map" ></div>';
+			} else {
+				$html .= '	<section class="dvf-items">';
 
-			foreach ( $vendors as $vendor ) {
-				$html .= $this->get_vendor_item( $vendor );
+				foreach ( $vendors as $vendor ) {
+					$html .= $this->get_vendor_item( $vendor );
+				}
+
+				$html .= '	</section>';
 			}
-
-			$html .= '	</section>';
 		}
 
 		$html = $this->get_footer( $html );
@@ -271,11 +300,13 @@ class DVF_List {
 
 		$allowed_countries = WC()->countries->get_allowed_countries();
 
-		$results        = [];
-		$args['number'] = $this->limit;
-		$args['offset'] = ( $this->page - 1 ) * $this->limit;
+		if ( $this->show_mode === DVF_Params::SHOW_MODE_LIST ) {
+			$args['number'] = $this->limit;
+			$args['offset'] = ( $this->page - 1 ) * $this->limit;
+		}
 
 		$vendors = dokan_get_sellers( $args );
+		$results = [];
 
 		foreach ( $vendors['users'] as $seller ) {
 			$vendor      = dokan()->vendor->get( $seller->ID );
@@ -297,15 +328,20 @@ class DVF_List {
 				$address .= ' ' . $allowed_countries[ $store_info['address']['country'] ];
 			}
 
+			$empty_address = empty( $store_info['address']['city'] ) || empty( $store_info['address']['street_1'] );
+			if ( $this->show_mode == DVF_Params::SHOW_MODE_MAP && $empty_address ) {
+				continue;
+			}
+
 			$address .= ' ' . $store_info['address']['city'];
 			$address .= ' ' . $store_info['address']['street_1'];
 
 			$results[] = array(
 				'store_id'    => $vendor->data->ID,
 				'store_url'   => dokan_get_store_url( $vendor->data->ID ),
-				'store_name'  => $store_info['store_name'],
-				'description' => $description,
-				'address'     => $address,
+				'store_name'  => esc_html( $store_info['store_name'] ),
+				'description' => esc_html( $description ),
+				'address'     => esc_html( $address ),
 				'phone'       => $store_info['phone'],
 				'banner'      => ( is_array( $store_banner_url ) ?
 					esc_attr( $store_banner_url[0] ) : esc_attr( $store_banner_url ) ),
@@ -410,7 +446,12 @@ class DVF_List {
 	 * @return string
 	 */
 	private function get_paginations( $postdata = array(), $ul = 'show' ) {
-		$html          = '';
+		$html = '';
+
+		if ( $this->show_mode == DVF_Params::SHOW_MODE_MAP ) {
+			return $html;
+		}
+
 		$count_vendors = $this->get_count_vendors( $postdata );
 		$pages         = ceil( $count_vendors / $this->limit );
 
@@ -464,6 +505,10 @@ class DVF_List {
 
 	private function get_pages( $postdata = array(), $ul = 'show' ) {
 		$html = '';
+
+		if ( $this->show_mode == DVF_Params::SHOW_MODE_MAP ) {
+			return $html;
+		}
 
 		if ( 'show' == $ul ) {
 			$html .= '	<ul class="dvf-pages" >';
@@ -543,7 +588,7 @@ class DVF_List {
 	}
 
 	/**
-	 * Return vendors list by filtering and pagination
+	 * Return json vendors list by filtering and pagination
 	 *
 	 * @since 1.0.0
 	 */
@@ -578,6 +623,27 @@ class DVF_List {
 			'items'       => $items,
 			'paginations' => $this->get_paginations( $postdata, 'hide' ),
 			'pages'       => $this->get_pages( $postdata, 'hide' ),
+		);
+
+		wp_send_json_success( $answer );
+
+		wp_die();
+	}
+
+	/**
+	 * Return json vendors objects for google map
+	 *
+	 * @since 1.0.5
+	 */
+	public function ajax_vendors_map() {
+		ob_clean();
+
+		parse_str( $_POST['data'], $postdata );
+
+		$this->show_mode = DVF_Params::SHOW_MODE_MAP;
+
+		$answer = array(
+			'vendors' => $this->get_vendors( $postdata ),
 		);
 
 		wp_send_json_success( $answer );
