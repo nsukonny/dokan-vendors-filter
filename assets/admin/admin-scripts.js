@@ -12,6 +12,21 @@ jQuery(document).ready(function ($) {
     $('body').on('change', '.dvf-multiply-list input[type="checkbox"]', function () {
         prepareTitles($(this).closest('tr'));
     });
+
+    if (0 < $('.dvf-tabs').length) {
+        $('.dvf-tabs .nav-tab').click(function (e) {
+            let that = $(this),
+                activeTab = $('.nav-tab-active');
+
+            $(activeTab.attr('href')).addClass('dvf-hide');
+            activeTab.removeClass('nav-tab-active');
+
+            $(that.attr('href')).removeClass('dvf-hide');
+            that.addClass('nav-tab-active');
+
+            return false;
+        });
+    }
 });
 
 function changeToMultiplyPicker(key, target, title) {

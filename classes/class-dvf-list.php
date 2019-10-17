@@ -54,6 +54,15 @@ class DVF_List {
 	private $show_mode = 'list';
 
 	/**
+	 * Plugin parameters
+	 *
+	 * @since 1.0.5
+	 *
+	 * @var array
+	 */
+	private $params;
+
+	/**
 	 * DokanVendorsFilterList constructor.
 	 *
 	 * @since 1.0.0
@@ -70,7 +79,8 @@ class DVF_List {
 
 		add_shortcode( 'dvf-list', array( $this, 'show_list' ) );
 
-		$this->limit = DVF_Params::$limits[0];
+		$this->limit  = DVF_Params::$limits[0];
+		$this->params = DVF_Params::get_parameters();
 	}
 
 	/**
@@ -95,12 +105,14 @@ class DVF_List {
 			true
 		);
 
-		wp_enqueue_script(
-			'dokan-vendors-google-map',
-			'https://maps.googleapis.com/maps/api/js?key=AIzaSyACmgyqq6TSvuKK6gxI6s-QzJOXRTzhy7A',
-			false,
-			DOKAN_VF_VERSION
-		);
+		if ( isset( $this->params['google']['key'] ) ) {
+			wp_enqueue_script(
+				'dokan-vendors-google-map',
+				'https://maps.googleapis.com/maps/api/js?key=' . $this->params['google']['key'],
+				false,
+				DOKAN_VF_VERSION
+			);
+		}
 
 		wp_localize_script(
 			'dokan-vendors-scripts',
