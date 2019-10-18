@@ -177,8 +177,8 @@ class DVF_List {
 
 		$html .= $this->get_paginations();
 
-		$filters = DVF_Params::get_parameter( 'filters' );
-		if ( count( $filters ) ) {
+
+		if ( isset( $this->params['filters'] ) && count( $this->params['filters'] ) ) {
 			$html .= '		<div class="dvf-filter-button" >';
 			$html .= '			<a href = "#" > Filters</a >';
 			$html .= '		</div >';
@@ -382,8 +382,8 @@ class DVF_List {
 			                <a href="' . $vendor['store_url'] . '" class="dvf-item-title" > 
 			                    ' . $vendor['store_name'] . '
 		                    </a >
-			                <div class="dvf_item_address" >' . $vendor['address'] . '</div >
-			                <div class="dvf-item-phone" >' . $vendor['phone'] . '</div >
+			                <div>' . $vendor['address'] . '</div >
+			                <div>' . $vendor['phone'] . '</div >
 			            </div >
 		            </div >';
 

@@ -4,7 +4,7 @@
  * Plugin Name: Dokan Vendors Filter
  * Plugin URI: http://nsukonny.ru/dokan-vendors-filter
  * Description: Display vendors list with filters
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: nSukonny
  * Author URI: http://nsukonny.ru
  * License: A "Slug" license name e.g. GPL2
@@ -163,6 +163,13 @@ if ( ! class_exists( 'DVF' ) ) {
 		 * @return void
 		 */
 		static function plugin_activation() {
+			/**
+			 * Include for activation
+			 */
+			if ( ! class_exists( 'DVF_Params' ) ) {
+				include_once plugin_dir_path( __FILE__ ) . 'classes/class-dvf-params.php';
+			}
+
 			$vendors = dokan_get_sellers();
 
 			foreach ( $vendors['users'] as $seller ) {
@@ -186,6 +193,7 @@ if ( ! class_exists( 'DVF' ) ) {
 		 */
 		//TODO Envato want to change this "The plugin should not delete any of its data upon deactivation"
 		static function plugin_deactivation() {
+			/*
 			delete_option( DVF_Params::SLUG . 'params' );
 
 			$vendors = dokan_get_sellers();
@@ -194,7 +202,7 @@ if ( ! class_exists( 'DVF' ) ) {
 				foreach ( DVF_Params::$fields as $key => $field ) {
 					delete_user_meta( $seller->ID, DVF_Params::SLUG . $key );
 				}
-			}
+			}*/
 		}
 	}
 
